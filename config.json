@@ -3,7 +3,7 @@
     "login": {
         "url": "https://www.truist.com/",
         "username": "PLACEHOLDER",
-        "password": "PLACEHOLDER"
+        "password": "PASS"
     },
 
     "categoryMap": {
