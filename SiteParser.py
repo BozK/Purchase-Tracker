@@ -21,21 +21,21 @@ class SiteParser:
         self.entries = dict()
 
         #Stores the webdriver that we'll be navigating with
-        self.webdriver = None
+        self.driver = None
 
         #Not sure how impl will work yet, but add this keyword to category mapper
         self.keywordToCategoryMapper = None
 
     #Opens a web browser, logs in, navigates to the credit card page
     def startup(self) -> webdriver.Chrome:
-        driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome()
         #If stuff's loading slowly this helps
-        driver.implicitly_wait(10)
-        driver.get(self.url)
+        self.driver.implicitly_wait(10)
+        self.driver.get(self.url)
 
-        username_field = driver.find_element(By.ID, value = "userId")
-        password_field = driver.find_element(By.ID, value = "idpassword")
-        signIn_button = driver.find_element(By.ID, value = "loginSubmit")
+        username_field = self.driver.find_element(By.ID, value = "userId")
+        password_field = self.driver.find_element(By.ID, value = "idpassword")
+        signIn_button = self.driver.find_element(By.ID, value = "loginSubmit")
 
         username_field.send_keys(self.username)
         password_field.send_keys(self.password)
@@ -45,13 +45,26 @@ class SiteParser:
 
         time.sleep(5)
         #Navigates us to the main credit card 
-        driver.find_elements(By.CLASS_NAME, "tru-core-container")[2].find_elements(By.TAG_NAME, "a")[2].click()
-
-        time.sleep(10)
+        self.driver.find_elements(By.CLASS_NAME, "tru-core-container")[2].find_elements(By.TAG_NAME, "a")[2].click()
 
     #Parses the site
     def parse(self):
-        time.sleep(1)
+        time.sleep(5)
+        entryRows = self.driver.find_elements(By.TAG_NAME, "tr")
+        if (len(entryRows) < 40):
+            print("ERROR: Elements didn't load in time")
+        #Skip the header row
+        entryRows = entryRows[1:]
+        #Filter out the date 
+        entryRows = [entry for entry in entryRows if entry.get_attribute("style") != "height: 0px;"]
+
+        firstEntryCols = entryRows[0].find_elements(By.TAG_NAME, "td")
+
+        DATE = firstEntryCols[0].text
+        DESCRIPTION = firstEntryCols[2].find_element(By.TAG_NAME, 'p').text
+        AMOUNT = firstEntryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
+
+        print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT)
 
     def mapEntries(self):
         time.sleep(1)
@@ -63,8 +76,9 @@ class SiteParser:
 #MAIN
 CON = "config.ini"
 def main():
-    P = SiteParser(CON)
-    D = P.startup()
+    siteParser = SiteParser(CON)
+    siteParser.startup()
+    siteParser.parse()
 
 if __name__ == "__main__":
     main()
