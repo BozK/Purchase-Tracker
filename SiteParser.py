@@ -3,7 +3,7 @@
 #Stretch: change CSV to update a big historical ledger tracking all of my cc statements
 
 from selenium import webdriver
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium.webdriver.common.by import By
 import time
 import configparser
@@ -17,8 +17,12 @@ class SiteParser:
         self.username = config['login']['username']
         self.password = config['login']['password']
 
+        #Date formatting
+        self.TODAY = datetime.now().date()
+        self.dateFormatString = "%m/%d/%Y"
+
         #This will hold the statement deets
-        self.entries = dict()
+        self.entries = list()
 
         #Stores the webdriver that we'll be navigating with
         self.driver = None
@@ -39,6 +43,7 @@ class SiteParser:
 
         username_field.send_keys(self.username)
         password_field.send_keys(self.password)
+
         #I think Truist is wonky without this
         time.sleep(1)
         signIn_button.click()
@@ -48,23 +53,43 @@ class SiteParser:
         self.driver.find_elements(By.CLASS_NAME, "tru-core-container")[2].find_elements(By.TAG_NAME, "a")[2].click()
 
     #Parses the site
-    def parse(self):
-        time.sleep(5)
+    def parse(self, days: int = 30):
+        #Load seems required
+        time.sleep(4)
+
+        #This should roughly be enough to scroll proportionally
+        scrolls = 3 * (days // 30 + 1)
+        for i in range(0, scrolls):
+            #Per scroll times, we move down 1000 pixels
+            self.driver.execute_script("window.scrollBy(0, {});".format(1000))
+        
+        #When we should stop adding to the entries list
+        dateCutoff = self.TODAY - timedelta(days=days)
+        
+        #Load seems required
+        time.sleep(3)
         entryRows = self.driver.find_elements(By.TAG_NAME, "tr")
         if (len(entryRows) < 40):
             print("ERROR: Elements didn't load in time")
+
         #Skip the header row
         entryRows = entryRows[1:]
         #Filter out the date 
         entryRows = [entry for entry in entryRows if entry.get_attribute("style") != "height: 0px;"]
 
-        firstEntryCols = entryRows[0].find_elements(By.TAG_NAME, "td")
+        for entry in entryRows:
+            entryCols = entry.find_elements(By.TAG_NAME, "td")
+            
+            DATE = entryCols[0].text
+            if (not datetime.strptime(DATE, self.dateFormatString).date() > dateCutoff):
+                break
+            DESCRIPTION = entryCols[2].find_element(By.TAG_NAME, 'p').text
+            AMOUNT = entryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
+            self.entries.append((DATE, DESCRIPTION, AMOUNT))
+            
+            print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT)
 
-        DATE = firstEntryCols[0].text
-        DESCRIPTION = firstEntryCols[2].find_element(By.TAG_NAME, 'p').text
-        AMOUNT = firstEntryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
-
-        print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT)
+        print("{} items in last {} days".format(len(self.entries), days))
 
     def mapEntries(self):
         time.sleep(1)
@@ -78,7 +103,7 @@ CON = "config.ini"
 def main():
     siteParser = SiteParser(CON)
     siteParser.startup()
-    siteParser.parse()
+    siteParser.parse(30)
 
 if __name__ == "__main__":
     main()

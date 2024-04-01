@@ -1,0 +1,75 @@
+{
+    "grocery": [
+        "HARRIS TEETER",
+        "LI MING'S GLOBAL",
+        "LIDL",
+        "CLIFF'S CORNER MEATS",
+        "GRAND ASIA MARKET",
+        "SPROUTS FARMERS",
+        "TRADER JOE",
+        "PUBLIX",
+        "WHOLEFDS",
+        "GIANT"
+    ],
+    "eating out": [
+        "CUGINO FORNO",
+        "BUNS BURGERS",
+        "HEAVENLY BUFFALOES",
+        "TWO ROOSTERS",
+        "QUE CHULA",
+        "AKASHI",
+        "GRAVYRALEIGH",
+        "CHICK-FIL-A",
+        "FIVE GUYS",
+        "MOES",
+        "MCDONALD'S",
+        "SUSHI NINE",
+        "RANDY'S PIZZA",
+        "KHALOVERA",
+        "CHUBBY'S TACOS",
+        "MEZEH",
+        "PANERA BREAD",
+        "MONTERREY MEXICAN",
+        "BAR TACO",
+        "RUCKUS PIZZA"
+    ],
+    "bills": [
+        "GEICO",
+        "Spectrum",
+        "Spotify"
+    ],
+    "coffee": [
+        "LANZA'S",
+        "EPILOGUE BOOKS",
+        "LA VITA DOLCE",
+        "BLACK & WHITE COFF"
+    ],
+    "misc fun": [
+        "FANDANGO",
+        "STEAM GAMES",
+        "THE RALEIGH BEER",
+        "DINGO DOG",
+        "HI-WIRE BREWING",
+        "RALEIGH TIMES",
+        "BOXCAR",
+        "YouTube Videos",
+        "AMC",
+        "THE POUR HOUSE",
+        "CAROWINDS"
+    ],
+    "gas": [
+        "BP#",
+        "CIRCLE K"
+    ],
+    "pet": [
+        "PETCO",
+        "KINDRED HEART ANIMAL"
+    ],
+    "clothes": [
+        "BANANAREPUBLIC",
+        "J. CREW",
+        "Bonobos",
+        "American Eagle"
+
+    ]
+}
