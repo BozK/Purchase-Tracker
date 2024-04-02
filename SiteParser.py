@@ -2,11 +2,15 @@
 #The categorizing, and outputting results to CSV.
 #Stretch: change CSV to update a big historical ledger tracking all of my cc statements
 
+import csv
+import json
 from selenium import webdriver
 from datetime import datetime, timedelta
 from selenium.webdriver.common.by import By
 import time
 import configparser
+
+from Purchase import Purchase
 
 class SiteParser:
     def __init__(self, configFile: str):
@@ -21,8 +25,12 @@ class SiteParser:
         self.TODAY = datetime.now().date()
         self.dateFormatString = "%m/%d/%Y"
 
-        #This will hold the statement deets
-        self.entries = list()
+        #This will hold the statement deets Purchase class
+        self.purchases = list()
+
+        #Loads in the mapping JSON
+        with open(config['filenames']['mappings']) as f:
+            self.mappings = json.load(f)
 
         #Stores the webdriver that we'll be navigating with
         self.driver = None
@@ -85,17 +93,32 @@ class SiteParser:
                 break
             DESCRIPTION = entryCols[2].find_element(By.TAG_NAME, 'p').text
             AMOUNT = entryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
-            self.entries.append((DATE, DESCRIPTION, AMOUNT))
+            #Charges with a + are either returns or cc payments, ignore
+            if (AMOUNT[0:1] == "+"):
+                continue
+            CATEGORY = self.mapEntry(DESCRIPTION)
+
+            self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, CATEGORY))
             
-            print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT)
+            print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT, " --- ", CATEGORY)
 
-        print("{} items in last {} days".format(len(self.entries), days))
+        print("{} items in last {} days".format(len(self.purchases), days))
 
-    def mapEntries(self):
-        time.sleep(1)
+    def mapEntry(self, description: str) -> str:    
+        for category in self.mappings:
+            for m in self.mappings[category]:
+                if (m in description):
+                    return category
+        return ""
+            
 
     def exportToCSV(self, filename: str):
-        time.sleep(1)
+        with open(filename, 'w', newline='') as f:
+            csvWriter = csv.writer(f)
+            csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'CATEGORY'])
+            #Might be more efficient refactored to happen during read loop
+            for p in self.purchases:
+                csvWriter.writerow(p.toCSVRow())
 
 
 #MAIN
@@ -104,6 +127,7 @@ def main():
     siteParser = SiteParser(CON)
     siteParser.startup()
     siteParser.parse(30)
+    siteParser.exportToCSV("test.csv")
 
 if __name__ == "__main__":
     main()
