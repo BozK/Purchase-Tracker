@@ -1,5 +1,5 @@
 {
-    "grocery": [
+    "GROCERY": [
         "HARRIS TEETER",
         "LI MING'S GLOBAL",
         "LIDL",
@@ -11,7 +11,7 @@
         "WHOLEFDS",
         "GIANT"
     ],
-    "eating out": [
+    "EATING OUT": [
         "CUGINO FORNO",
         "BUNS BURGERS",
         "HEAVENLY BUFFALOES",
@@ -31,20 +31,25 @@
         "PANERA BREAD",
         "MONTERREY MEXICAN",
         "BAR TACO",
-        "RUCKUS PIZZA"
+        "RUCKUS PIZZA",
+        "BOJANGLES"
     ],
-    "bills": [
-        "GEICO",
-        "Spectrum",
+    "CAR INSURANCE": [
+        "GEICO"
+    ],
+    "INTERNET": [
+        "Spectrum"
+    ],
+    "SPOTIFY": [
         "Spotify"
     ],
-    "coffee": [
+    "CAFE": [
         "LANZA'S",
         "EPILOGUE BOOKS",
         "LA VITA DOLCE",
         "BLACK & WHITE COFF"
     ],
-    "misc fun": [
+    "MISC FUN": [
         "FANDANGO",
         "STEAM GAMES",
         "THE RALEIGH BEER",
@@ -57,19 +62,18 @@
         "THE POUR HOUSE",
         "CAROWINDS"
     ],
-    "gas": [
+    "GAS": [
         "BP#",
         "CIRCLE K"
     ],
-    "pet": [
+    "PET": [
         "PETCO",
         "KINDRED HEART ANIMAL"
     ],
-    "clothes": [
+    "CLOTHES": [
         "BANANAREPUBLIC",
         "J. CREW",
         "Bonobos",
         "American Eagle"
-
     ]
 }

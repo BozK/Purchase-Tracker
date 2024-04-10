@@ -4,6 +4,7 @@
 
 import csv
 import json
+import sys
 from selenium import webdriver
 from datetime import datetime, timedelta
 from selenium.webdriver.common.by import By
@@ -71,7 +72,7 @@ class SiteParser:
             #Per scroll times, we move down 1000 pixels
             self.driver.execute_script("window.scrollBy(0, {});".format(1000))
         
-        #When we should stop adding to the entries list
+        #When we should stop adding to the purchases list
         dateCutoff = self.TODAY - timedelta(days=days)
         
         #Load seems required
@@ -92,19 +93,24 @@ class SiteParser:
             if (not datetime.strptime(DATE, self.dateFormatString).date() > dateCutoff):
                 break
             DESCRIPTION = entryCols[2].find_element(By.TAG_NAME, 'p').text
+            
+            #Need to do some string tweaking this so it's saved as a float in the end
             AMOUNT = entryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
             #Charges with a + are either returns or cc payments, ignore
             if (AMOUNT[0:1] == "+"):
                 continue
-            CATEGORY = self.mapEntry(DESCRIPTION)
+            #Skip over the $ at the front, remove any commas
+            AMOUNT = AMOUNT[1:].replace(',', '')
+            #Convert to float
+            AMOUNT = float(AMOUNT)
 
-            self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, CATEGORY))
+
+            self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, self.mapPurchase(DESCRIPTION)))
             
-            print(DATE, " --- ", DESCRIPTION, " --- ", AMOUNT, " --- ", CATEGORY)
-
         print("{} items in last {} days".format(len(self.purchases), days))
 
-    def mapEntry(self, description: str) -> str:    
+
+    def mapPurchase(self, description: str) -> str:    
         for category in self.mappings:
             for m in self.mappings[category]:
                 if (m in description):
@@ -123,6 +129,7 @@ class SiteParser:
 
 #MAIN
 CON = "config.ini"
+
 def main():
     siteParser = SiteParser(CON)
     siteParser.startup()
