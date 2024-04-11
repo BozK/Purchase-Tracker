@@ -65,7 +65,6 @@ class SiteParser:
     def parse(self, days: int = 30):
         #Load seems required
         time.sleep(4)
-
         #This should roughly be enough to scroll proportionally
         scrolls = 3 * (days // 30 + 1)
         for i in range(0, scrolls):
@@ -80,7 +79,6 @@ class SiteParser:
         entryRows = self.driver.find_elements(By.TAG_NAME, "tr")
         if (len(entryRows) < 40):
             print("ERROR: Elements didn't load in time")
-
         #Skip the header row
         entryRows = entryRows[1:]
         #Filter out the date 
@@ -90,10 +88,9 @@ class SiteParser:
             entryCols = entry.find_elements(By.TAG_NAME, "td")
             
             DATE = entryCols[0].text
-            if (not datetime.strptime(DATE, self.dateFormatString).date() > dateCutoff):
+            if (datetime.strptime(DATE, self.dateFormatString).date() <= dateCutoff):
                 break
             DESCRIPTION = entryCols[2].find_element(By.TAG_NAME, 'p').text
-            
             #Need to do some string tweaking this so it's saved as a float in the end
             AMOUNT = entryCols[3].find_element(By.TAG_NAME, 'tru-core-text').text
             #Charges with a + are either returns or cc payments, ignore
@@ -104,11 +101,9 @@ class SiteParser:
             #Convert to float
             AMOUNT = float(AMOUNT)
 
-
             self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, self.mapPurchase(DESCRIPTION)))
             
         print("{} items in last {} days".format(len(self.purchases), days))
-
 
     def mapPurchase(self, description: str) -> str:    
         for category in self.mappings:
