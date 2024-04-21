@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import json
 import time
 from Purchase import Purchase
+import os
 
 class DataAnalyzer:
     def __init__(self):
@@ -16,10 +17,12 @@ class DataAnalyzer:
         self.dateFormatString = "%m/%d/%Y"
 
         #This will hold the Purchases made
-        self.purchases = list()
+        self.currentPurchases = list()
         #This will hold the totals for each category, with the key being the category
         #Will contain [Total, Total Post-M]
         self.categoryTotals = dict()
+
+        self.historicalPurchases = list()
 
         with open("budget.json") as f:
             self.budget = json.load(f)
@@ -42,18 +45,15 @@ class DataAnalyzer:
                     POSTM = float(row[2])
 
                 #Add to the list
-                self.purchases.append(Purchase(row[0], row[1], float(row[2]), POSTM, CATEGORY))
+                self.currentPurchases.append(Purchase(row[0], row[1], float(row[2]), POSTM, CATEGORY))
 
-    def validateAgainstBudget(self, days: int = 30, costThreshold: int = 0):
-        # for cat in self.budget.keys():
-        #     self.categoryTotals[cat] = 0
-        
+    def validateCurrentAgainstBudget(self, days: int = 30, costThreshold: int = 0):
         #When we should stop reading the entries from the CSV against the budget
         dateCutoff = self.TODAY - timedelta(days=days)
         
         #Fill in the totals we have per category
-        for pur in self.purchases:
-            if (datetime.strptime(pur.date, self.dateFormatString).date() <= dateCutoff):
+        for pur in self.currentPurchases:
+            if (pur.getDateClass() <= dateCutoff):
                 break #We can assume the data is sorted on date - if it's changed to not be, this should be a continue
 
             if (pur.category not in self.categoryTotals):
@@ -86,12 +86,65 @@ class DataAnalyzer:
 
             print("{:.2f}\t\t{:.2f}\t\t{:.2f}\t\t{}\t\t\t{:.2f}\t\t{:.2f}\t\t{:.2f}".format(catTotal, budgeted, difference, cat, catTotalM, budgetedM, differenceM))
 
+
+
     def exportToCSV(self):
-        with open('HISTORICAL.csv', 'w+', newline='') as f:
-            csvWriter = csv.writer(f)
-            csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'POST M AMOUNT', 'CATEGORY'])
-            for p in self.purchases:
-                csvWriter.writerow(p.toCSVRow())
+        #Two modes: historical file already exists locally OR it needs to be created
+        if (os.path.isfile('HISTORICAL.csv')):
+            #Read in existing historical file
+            self.historicalPurchases = []
+            with open('HISTORICAL.csv', 'r', newline='') as f:
+                csvReader = csv.reader(f)
+                for r in csvReader:
+                    #Skip reading over a header row
+                    if (r[0] == "DATE"):
+                        continue
+                    self.historicalPurchases.append(Purchase(r[0], r[1], float(r[2]), float(r[3], r[4])))
+            
+            self.removeDupes()
+            #Now that dupes are cleared up, we can append all the currentPurchases remaining
+            #(reverse order needed for correct insertion order)
+            for cRow in self.currentPurchases[::-1]:
+                self.historicalPurchases.insert(1, cRow)
+
+            #And now we export
+            with open('HISTORICAL.csv', 'w', newline='') as f:
+                csvWriter = csv.writer(f)
+                csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'POST M AMOUNT', 'CATEGORY'])
+                for hRow in self.historicalPurchases:
+                    csvWriter.writerow(hRow.toCSVRow())
+
+        #File doesn't already exist, let's make one
+        else:
+            with open('HISTORICAL.csv', 'w', newline='') as f:
+                csvWriter = csv.writer(f)
+                csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'POST M AMOUNT', 'CATEGORY'])
+                for cRow in self.currentPurchases:
+                    csvWriter.writerow(cRow.toCSVRow())
+
+    def removeDupes(self):
+        for cRow in self.currentPurchases:
+            #Easy check - if currentPurchases[x] is a later date than the first in historicalPurchases, 
+            #it's later than everything in historicalPurchases, therefore it's not a dupe
+            if (cRow.getDateClass() > self.historicalPurchases[0].getDateClass()):
+                continue
+            #Entries with a date BEFORE the latest in historicalPurchases should already have been
+            #included, therefore cRow is a dupe we can remove
+            elif (cRow.getDateClass() < self.historicalPurchases[0].getDateClass()):
+                self.currentPurchases.remove(cRow)
+            #Granular check if date equals the latest in historicalPurchases - could be a distinct purchase
+            else:
+                for hRow in self.historicalPurchases:
+                    #Gotten far enough into historicalPurchases that we know cRow came after anything left
+                    if (cRow.getDateClass() > hRow.getDateClass()):
+                        break
+
+                    if (cRow.getDateClass() == hRow.getDateClass() and \
+                        cRow.description == hRow.description and \
+                        cRow.amount == hRow.amount):
+                        #Dupe detected, OBLITERATE THAT TWINK
+                        self.currentPurchases.remove(cRow)
+
 
     def visualize(self):
         time.sleep(1)
@@ -101,7 +154,7 @@ def main():
     time.sleep(1)
     DA = DataAnalyzer()
     DA.importCSV("test.csv")
-    DA.validateAgainstBudget(days = 120, costThreshold=2)
+    DA.validateCurrentAgainstBudget(days = 120, costThreshold=2)
     DA.exportToCSV()
 
 if __name__ == "__main__":
