@@ -1,15 +1,15 @@
 {
-    "GAS": 60,
-    "GROCERY": 800,
-    "PET": 80,
-    "SPLURGE GROCERY": 80,
-    "CAFE": 40,
-    "MISC FUN": 50,
-    "CAR INSURANCE": 109.93,
-    "INTERNET": 56.99,
-    "EATING OUT": 80,
-    "SPOTIFY": 11.73,
-    "CLOTHES": 100,
-    "PARKING": 10,
-    "MISC": 200
+    "GAS": [60, 1],
+    "GROCERY": [800, 0.66],
+    "PET": [80, 0.5],
+    "SPLURGE GROCERY": [80, 1],
+    "CAFE": [40, 1],
+    "MISC FUN": [50, 1],
+    "CAR INSURANCE": [109.93, 1],
+    "INTERNET": [56.99, 0.5],
+    "EATING OUT": [80, 0.66],
+    "SPOTIFY": [11.73, 1],
+    "CLOTHES": [100, 1],
+    "PARKING": [10, 1],
+    "MISC": [200, 1]
 }

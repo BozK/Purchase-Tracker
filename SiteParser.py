@@ -101,7 +101,8 @@ class SiteParser:
             #Convert to float
             AMOUNT = float(AMOUNT)
 
-            self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, self.mapPurchase(DESCRIPTION)))
+            #Post M balance gets calculated in the Data Analyzer, it's just 0 for now
+            self.purchases.append(Purchase(DATE, DESCRIPTION, AMOUNT, 0, self.mapPurchase(DESCRIPTION)))
             
         print("{} items in last {} days".format(len(self.purchases), days))
 
@@ -116,10 +117,11 @@ class SiteParser:
     def exportToCSV(self, filename: str):
         with open(filename, 'w', newline='') as f:
             csvWriter = csv.writer(f)
-            csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'CATEGORY'])
+            csvWriter.writerow(['DATE', 'DESCRIPTION', 'AMOUNT', 'POST M AMOUNT', 'CATEGORY'])
             #Might be more efficient refactored to happen during read loop
             for p in self.purchases:
                 csvWriter.writerow(p.toCSVRow())
+
 
 
 #MAIN
@@ -128,7 +130,7 @@ CON = "config.ini"
 def main():
     siteParser = SiteParser(CON)
     siteParser.startup()
-    siteParser.parse(30)
+    siteParser.parse(120)
     siteParser.exportToCSV("test.csv")
 
 if __name__ == "__main__":
